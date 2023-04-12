@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.m2m.trello.mapper.TodoMapper">
+
+	<resultMap id="TodoDtoMap" type="TodoDto">
+	  <result column="todo_id" property="todoId"/>
+	  <result column="member_id" property="memberId"/>
+	  <result column="todo_title" property="todoTitle"/>
+		<result column="reg_date" property="regDate"/>
+	</resultMap>
+
+	<resultMap id="CardDtoMap" type="CardDto">
+		<result column="card_id" property="cardId"/>
+		<result column="todo_id" property="todoId"/>
+		<result column="card_title" property="cardTitle"/>
+		<result column="reg_date" property="regDate"/>
+	</resultMap>
+
+	<resultMap id="AttachDtoMap" type="AttachDto">
+		<result column="attach_id" property="attachId"/>
+		<result column="card_id" property="cardId"/>
+		<result column="file_name" property="fileName"/>
+		<result column="ori_file_name" property="oriFileName"/>
+		<result column="file_size" property="fileSize"/>
+		<result column="file_path" property="filePath"/>
+		<result column="reg_date" property="regDate"/>
+	</resultMap>
+
+	<insert id="insertTodo" parameterType="TodoDto">
+		INSERT INTO todo(member_id, todo_title, reg_date)
+		VALUES (
+			#{memberId, jdbcType=VARCHAR},
+			#{todoTitle, jdbcType=VARCHAR},
+			now()
+		)
+		<selectKey keyProperty="todoId" resultType="Integer">
+	    SELECT LAST_INSERT_ID()
+	  </selectKey>
+  </insert>
+
+	<select id="selectTodoList" resultMap="TodoDtoMap">
+		SELECT todo_id
+				 , member_id
+				 , todo_title
+				 , reg_date
+			FROM todo
+		 ORDER BY reg_date DESC;
+	</select>
+
+	<select id="selectCardList" parameterType="int" resultMap="CardDtoMap">
+		SELECT card_id
+				 , todo_id
+				 , seq
+				 , card_title
+				 , description
+				 , reg_date
+			FROM card
+		 WHERE todo_id = #{todoId, jdbcType=INTEGER}
+	</select>
+
+	<select id="selectCard" parameterType="int" resultMap="CardDtoMap">
+		SELECT card_id
+		, todo_id
+		, seq
+		, card_title
+		, description
+		, reg_date
+		FROM card
+		WHERE card_id = #{cardId, jdbcType=INTEGER}
+	</select>
+
+	<select id="selectAttachList" parameterType="int" resultMap="AttachDtoMap">
+		SELECT attach_id
+				 , card_id
+				 , file_name
+				 , ori_file_name
+				 , file_size
+				 , file_path
+				 , reg_date
+		  FROM attach
+		 WHERE card_id = #{cardId, jdbcType=INTEGER}
+	</select>
+
+	<update id="updateTodo" parameterType="TodoDto">
+		UPDATE todo SET
+		       todo_title = #{todoTitle, jdbcType=VARCHAR}
+		 WHERE todo_id = #{todoId, jdbcType=INTEGER}
+	</update>
+
+	<insert id="insertCard" parameterType="CardDto">
+		INSERT INTO card(todo_id, seq, card_title, description, reg_date)
+		VALUES (#{todoId, jdbcType=INTEGER}, 0, #{cardTitle, jdbcType=VARCHAR},
+			#{description, jdbcType=VARCHAR}, now())
+
+		<selectKey keyProperty="cardId" resultType="Integer">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+
+	<insert id="insertAttach" parameterType="AttachDto">
+		INSERT INTO attach(card_id, file_name, ori_file_name, file_size, file_path, reg_date)
+		VALUES (#{cardId, jdbcType=INTEGER}, #{fileName, jdbcType=VARCHAR}, #{oriFileName, jdbcType=VARCHAR},
+			#{fileSize, jdbcType=VARCHAR}, #{filePath, jdbcType=VARCHAR}, now())
+	</insert>
+
+	<select id="selectAttach" parameterType="int" resultMap="AttachDtoMap">
+		SELECT attach_id
+				 , card_id
+				 , file_name
+				 , ori_file_name
+				 , file_size
+				 , file_path
+				 , reg_date
+			FROM attach
+		 WHERE attach_id = #{attachId, jdbcType=INTEGER}
+	</select>
+
+	<delete id="deleteAttach" parameterType="int">
+		DELETE FROM attach
+		 WHERE attach_id = #{attachId, jdbcType=INTEGER}
+	</delete>
+
+	<update id="updateCard" parameterType="CardDto">
+		UPDATE card
+		   SET card_title = #{cardTitle, jdbcType=VARCHAR}
+		     , description = #{description, jdbcType=VARCHAR}
+		 WHERE card_id = #{cardId, jdbcType=INTEGER}
+	</update>
+
+	<delete id="deleteCard" parameterType="int">
+		DELETE FROM card
+		 WHERE card_id = #{cardId, jdbcType=INTEGER}
+	</delete>
+
+	<delete id="deleteTodo" parameterType="int">
+		DELETE FROM todo
+		WHERE todo_id = #{todoId, jdbcType=INTEGER}
+	</delete>
+</mapper>
