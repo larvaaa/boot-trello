@@ -39,7 +39,8 @@ public class TodoController {
 
         return resultMap;
     }
-
+    
+    //투두리스트 조회
     @GetMapping("/todo")
     public HashMap<String, Object> getTodoList() {
 
